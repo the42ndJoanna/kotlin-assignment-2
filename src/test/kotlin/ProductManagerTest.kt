@@ -8,6 +8,7 @@ import model.InventoriesService
 import model.Inventory
 import model.Product
 import model.ProductsService
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -45,6 +46,65 @@ class ProductManagerTest {
 
         // THEN
         assertTrue(exception.message!!.contains("Failed to fetch products or inventories"))
+        coVerify(exactly = 1) { productsService.getProductsService().getProducts() }
+        coVerify(exactly = 1) { inventoriesService.getInventoriesService().getInventories() }
+    }
+
+    @Test
+    fun `getProductsWithAdjustedPrices should return products with original price if type is NORMAL`() = runBlocking {
+        // GIVEM
+        val products = listOf(
+            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 299.99, type = "NORMAL", image = "image1.jpg"),
+        )
+        val inventories = listOf(
+            Inventory(id = "1", SKU = "ABC123", zone = "CN_NORTH", quantity = 50)
+        )
+        val productResponse: Response<List<Product>> = Response.success(products)
+        val inventoryResponse: Response<List<Inventory>> = Response.success(inventories)
+        coEvery { productsService.getProductsService().getProducts() } returns productResponse
+        coEvery { inventoriesService.getInventoriesService().getInventories() } returns inventoryResponse
+
+        // WHEN
+        val result = productManager.getProductsWithAdjustedPrices()
+
+        // THEN
+        val expectedProducts = listOf(
+            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 299.99, type = "NORMAL", image = "image1.jpg")
+        )
+        assertEquals(expectedProducts, result)
+        coVerify(exactly = 1) { productsService.getProductsService().getProducts() }
+        coVerify(exactly = 1) { inventoriesService.getInventoriesService().getInventories() }
+    }
+
+    @Test
+    fun `getProductsWithAdjustedPrices should return products with adjusted prices if type is HIGH_DEMAND`() = runBlocking {
+        // GIVEM
+        val products = listOf(
+            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 100.00, type = "HIGH_DEMAND", image = "image1.jpg"),
+            Product(id = "2", SKU = "DEF456", name = "Sports Shoes", price = 100.00, type = "HIGH_DEMAND", image = "image2.jpg"),
+            Product(id = "3", SKU = "GHI789", name = "Bluetooth Headphones", price = 100.00, type = "HIGH_DEMAND", image = "image3.jpg"),
+        )
+        val inventories = listOf(
+            Inventory(id = "1", SKU = "ABC123", zone = "CN_NORTH", quantity = 50),
+            Inventory(id = "2", SKU = "ABC123", zone = "CN_EAST", quantity = 100),
+            Inventory(id = "3", SKU = "DEF456", zone = "US_WEST", quantity = 100),
+            Inventory(id = "4", SKU = "GHI789", zone = "EU_CENTRAL", quantity = 10),
+        )
+        val productResponse: Response<List<Product>> = Response.success(products)
+        val inventoryResponse: Response<List<Inventory>> = Response.success(inventories)
+        coEvery { productsService.getProductsService().getProducts() } returns productResponse
+        coEvery { inventoriesService.getInventoriesService().getInventories() } returns inventoryResponse
+
+        // WHEN
+        val result = productManager.getProductsWithAdjustedPrices()
+
+        // THEN
+        val expectedProducts = listOf(
+            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 100.00, type = "HIGH_DEMAND", image = "image1.jpg"),
+            Product(id = "2", SKU = "DEF456", name = "Sports Shoes", price = 100.00 * 1.2, type = "HIGH_DEMAND", image = "image2.jpg"),
+            Product(id = "3", SKU = "GHI789", name = "Bluetooth Headphones", price = 100.00 * 1.5, type = "HIGH_DEMAND", image = "image3.jpg")
+        )
+        assertEquals(expectedProducts, result)
         coVerify(exactly = 1) { productsService.getProductsService().getProducts() }
         coVerify(exactly = 1) { inventoriesService.getInventoriesService().getInventories() }
     }
