@@ -4,10 +4,7 @@ import io.mockk.coVerify
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import model.InventoriesService
-import model.Inventory
-import model.Product
-import model.ProductsService
+import model.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -52,9 +49,9 @@ class ProductManagerTest {
 
     @Test
     fun `getProductsWithAdjustedPrices should return products with original price if type is NORMAL`() = runBlocking {
-        // GIVEM
+        // GIVEN
         val products = listOf(
-            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 299.99, type = "NORMAL", image = "image1.jpg"),
+            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 299.99, type = ProductTypeEnum.NORMAL, image = "image1.jpg"),
         )
         val inventories = listOf(
             Inventory(id = "1", SKU = "ABC123", zone = "CN_NORTH", quantity = 50)
@@ -69,7 +66,7 @@ class ProductManagerTest {
 
         // THEN
         val expectedProducts = listOf(
-            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 299.99, type = "NORMAL", image = "image1.jpg")
+            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 299.99, type = ProductTypeEnum.NORMAL, image = "image1.jpg")
         )
         assertEquals(expectedProducts, result)
         coVerify(exactly = 1) { productsService.getProductsService().getProducts() }
@@ -80,9 +77,9 @@ class ProductManagerTest {
     fun `getProductsWithAdjustedPrices should return products with adjusted prices if type is HIGH_DEMAND`() = runBlocking {
         // GIVEM
         val products = listOf(
-            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 100.00, type = "HIGH_DEMAND", image = "image1.jpg"),
-            Product(id = "2", SKU = "DEF456", name = "Sports Shoes", price = 100.00, type = "HIGH_DEMAND", image = "image2.jpg"),
-            Product(id = "3", SKU = "GHI789", name = "Bluetooth Headphones", price = 100.00, type = "HIGH_DEMAND", image = "image3.jpg"),
+            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 100.00, type = ProductTypeEnum.HIGH_DEMAND, image = "image1.jpg"),
+            Product(id = "2", SKU = "DEF456", name = "Sports Shoes", price = 100.00, type = ProductTypeEnum.HIGH_DEMAND, image = "image2.jpg"),
+            Product(id = "3", SKU = "GHI789", name = "Bluetooth Headphones", price = 100.00, type = ProductTypeEnum.HIGH_DEMAND, image = "image3.jpg"),
         )
         val inventories = listOf(
             Inventory(id = "1", SKU = "ABC123", zone = "CN_NORTH", quantity = 50),
@@ -100,9 +97,9 @@ class ProductManagerTest {
 
         // THEN
         val expectedProducts = listOf(
-            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 100.00, type = "HIGH_DEMAND", image = "image1.jpg"),
-            Product(id = "2", SKU = "DEF456", name = "Sports Shoes", price = 100.00 * 1.2, type = "HIGH_DEMAND", image = "image2.jpg"),
-            Product(id = "3", SKU = "GHI789", name = "Bluetooth Headphones", price = 100.00 * 1.5, type = "HIGH_DEMAND", image = "image3.jpg")
+            Product(id = "1", SKU = "ABC123", name = "Electronic Watch", price = 100.00, type = ProductTypeEnum.HIGH_DEMAND, image = "image1.jpg"),
+            Product(id = "2", SKU = "DEF456", name = "Sports Shoes", price = 100.00 * 1.2, type = ProductTypeEnum.HIGH_DEMAND, image = "image2.jpg"),
+            Product(id = "3", SKU = "GHI789", name = "Bluetooth Headphones", price = 100.00 * 1.5, type = ProductTypeEnum.HIGH_DEMAND, image = "image3.jpg")
         )
         assertEquals(expectedProducts, result)
         coVerify(exactly = 1) { productsService.getProductsService().getProducts() }

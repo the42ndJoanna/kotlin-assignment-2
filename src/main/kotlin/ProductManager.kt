@@ -27,16 +27,7 @@ class ProductManager(
                         .filter { it.SKU == product.SKU }
                         .sumOf { it.quantity }
 
-                    val adjustedPrice = if (product.type == "HIGH_DEMAND") {
-                        when {
-                            totalStock > 100 -> product.price
-                            totalStock in 31..100 -> product.price * 1.2
-                            totalStock <= 30 -> product.price * 1.5
-                            else -> product.price
-                        }
-                    } else {
-                        product.price
-                    }
+                    val adjustedPrice = calculatePrice(product, totalStock)
 
                     product.copy(price = adjustedPrice)
                 }
@@ -46,6 +37,17 @@ class ProductManager(
             val errorMessage = buildErrorMessage(getProductRes, getInventoryRes)
             throw Exception(errorMessage)
         }
+    }
+
+    private fun calculatePrice(product: Product, totalStock: Int) = if (product.type == ProductTypeEnum.HIGH_DEMAND) {
+        when {
+            totalStock > 100 -> product.price
+            totalStock in 31..100 -> product.price * 1.2
+            totalStock <= 30 -> product.price * 1.5
+            else -> product.price
+        }
+    } else {
+        product.price
     }
 
     private fun buildErrorMessage(
